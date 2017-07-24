@@ -18,10 +18,10 @@ std::list<std::reference_wrapper<Event::Dispatcher>> InstanceImpl::registered_th
 
 InstanceImpl::~InstanceImpl() { reset(); }
 
-ThreadLocalObjectSharedPtr InstanceImpl::get(uint32_t index) {
+/*ThreadLocalObjectSharedPtr InstanceImpl::get(uint32_t index) {
   ASSERT(thread_local_data_.data_.size() > index);
   return thread_local_data_.data_[index];
-}
+}*/
 
 void InstanceImpl::registerThread(Event::Dispatcher& dispatcher, bool main_thread) {
   ASSERT(std::this_thread::get_id() == main_thread_id_);
@@ -34,7 +34,7 @@ void InstanceImpl::registerThread(Event::Dispatcher& dispatcher, bool main_threa
   }
 }
 
-void InstanceImpl::runOnAllThreads(Event::PostCb cb) {
+/*void InstanceImpl::runOnAllThreads(Event::PostCb cb) {
   ASSERT(std::this_thread::get_id() == main_thread_id_);
   for (Event::Dispatcher& dispatcher : registered_threads_) {
     dispatcher.post(cb);
@@ -42,9 +42,9 @@ void InstanceImpl::runOnAllThreads(Event::PostCb cb) {
 
   // Handle main thread.
   cb();
-}
+}*/
 
-void InstanceImpl::set(uint32_t index, InitializeCb cb) {
+/*void InstanceImpl::set(uint32_t index, InitializeCb cb) {
   ASSERT(std::this_thread::get_id() == main_thread_id_);
   for (Event::Dispatcher& dispatcher : registered_threads_) {
     dispatcher.post([index, cb, &dispatcher]() -> void { setThreadLocal(index, cb(dispatcher)); });
@@ -52,7 +52,7 @@ void InstanceImpl::set(uint32_t index, InitializeCb cb) {
 
   // Handle main thread.
   setThreadLocal(index, cb(*main_thread_dispatcher_));
-}
+}*/
 
 void InstanceImpl::setThreadLocal(uint32_t index, ThreadLocalObjectSharedPtr object) {
   if (thread_local_data_.data_.size() <= index) {
@@ -62,11 +62,7 @@ void InstanceImpl::setThreadLocal(uint32_t index, ThreadLocalObjectSharedPtr obj
   thread_local_data_.data_[index] = object;
 }
 
-void InstanceImpl::shutdownThread() {
-  for (auto& entry : thread_local_data_.data_) {
-    entry->shutdown();
-  }
-}
+void InstanceImpl::shutdownThread() { thread_local_data_.data_.clear(); }
 
 void InstanceImpl::reset() {
   ASSERT(std::this_thread::get_id() == main_thread_id_);

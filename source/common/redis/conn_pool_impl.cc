@@ -174,23 +174,19 @@ ClientPtr ClientFactoryImpl::create(Upstream::HostConstSharedPtr host,
                             config);
 }
 
-// TODO(mattklein123): The TLS slot will never get cleaned up in the LDS case. Will fix in a follow
-//                     up.
 InstanceImpl::InstanceImpl(const std::string& cluster_name, Upstream::ClusterManager& cm,
-                           ClientFactory& client_factory, ThreadLocal::Instance& tls,
+                           ClientFactory& client_factory, ThreadLocal::SlotAllocator& tls,
                            const Json::Object& config)
-    : cm_(cm), client_factory_(client_factory), tls_(tls), tls_slot_(tls.allocateSlot()),
-      config_(config) {
-  tls.set(tls_slot_,
-          [this,
-           cluster_name](Event::Dispatcher& dispatcher) -> ThreadLocal::ThreadLocalObjectSharedPtr {
-            return std::make_shared<ThreadLocalPool>(*this, dispatcher, cluster_name);
-          });
+    : cm_(cm), client_factory_(client_factory), tls_(tls.allocateSlot()), config_(config) {
+  tls_->set([this, cluster_name](
+                Event::Dispatcher& dispatcher) -> ThreadLocal::ThreadLocalObjectSharedPtr {
+    return std::make_shared<ThreadLocalPool>(*this, dispatcher, cluster_name);
+  });
 }
 
 PoolRequest* InstanceImpl::makeRequest(const std::string& hash_key, const RespValue& value,
                                        PoolCallbacks& callbacks) {
-  return tls_.getTyped<ThreadLocalPool>(tls_slot_).makeRequest(hash_key, value, callbacks);
+  return tls_->getTyped<ThreadLocalPool>().makeRequest(hash_key, value, callbacks);
 }
 
 InstanceImpl::ThreadLocalPool::ThreadLocalPool(InstanceImpl& parent, Event::Dispatcher& dispatcher,
@@ -255,11 +251,11 @@ void InstanceImpl::ThreadLocalActiveClient::onEvent(uint32_t events) {
   }
 }
 
-void InstanceImpl::ThreadLocalPool::shutdown() {
+/*void InstanceImpl::ThreadLocalPool::shutdown() {
   while (!client_map_.empty()) {
     client_map_.begin()->second->redis_client_->close();
   }
-}
+}fixfix*/
 
 } // namespace ConnPool
 } // namespace Redis

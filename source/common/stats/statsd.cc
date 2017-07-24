@@ -31,12 +31,12 @@ Writer::Writer(Network::Address::InstanceConstSharedPtr address) {
 
 Writer::~Writer() { ASSERT(shutdown_); }
 
-void Writer::shutdown() {
+/*void Writer::shutdown() {
   shutdown_ = true;
   if (fd_ != -1) {
     RELEASE_ASSERT(close(fd_) == 0);
   }
-}
+}fixfix*/
 
 void Writer::writeCounter(const std::string& name, uint64_t increment) {
   std::string message(fmt::format("envoy.{}:{}|c", name, increment));
@@ -60,39 +60,38 @@ void Writer::send(const std::string& message) {
   ::send(fd_, message.c_str(), message.size(), MSG_DONTWAIT);
 }
 
-UdpStatsdSink::UdpStatsdSink(ThreadLocal::Instance& tls,
+UdpStatsdSink::UdpStatsdSink(ThreadLocal::SlotAllocator& tls,
                              Network::Address::InstanceConstSharedPtr address)
-    : tls_(tls), tls_slot_(tls.allocateSlot()), server_address_(address) {
-  tls.set(tls_slot_, [this](Event::Dispatcher&) -> ThreadLocal::ThreadLocalObjectSharedPtr {
+    : tls_(tls.allocateSlot()), server_address_(address) {
+  tls_->set([this](Event::Dispatcher&) -> ThreadLocal::ThreadLocalObjectSharedPtr {
     return std::make_shared<Writer>(this->server_address_);
   });
 }
 
 void UdpStatsdSink::flushCounter(const std::string& name, uint64_t delta) {
-  tls_.getTyped<Writer>(tls_slot_).writeCounter(name, delta);
+  tls_->getTyped<Writer>().writeCounter(name, delta);
 }
 
 void UdpStatsdSink::flushGauge(const std::string& name, uint64_t value) {
-  tls_.getTyped<Writer>(tls_slot_).writeGauge(name, value);
+  tls_->getTyped<Writer>().writeGauge(name, value);
 }
 
 void UdpStatsdSink::onTimespanComplete(const std::string& name, std::chrono::milliseconds ms) {
-  tls_.getTyped<Writer>(tls_slot_).writeTimer(name, ms);
+  tls_->getTyped<Writer>().writeTimer(name, ms);
 }
 
 TcpStatsdSink::TcpStatsdSink(const LocalInfo::LocalInfo& local_info,
-                             const std::string& cluster_name, ThreadLocal::Instance& tls,
+                             const std::string& cluster_name, ThreadLocal::SlotAllocator& tls,
                              Upstream::ClusterManager& cluster_manager, Stats::Scope& scope)
-    : tls_(tls), tls_slot_(tls.allocateSlot()), cluster_manager_(cluster_manager),
+    : tls_(tls.allocateSlot()), cluster_manager_(cluster_manager),
       cx_overflow_stat_(scope.counter("statsd.cx_overflow")) {
 
   Config::Utility::checkClusterAndLocalInfo("tcp statsd", cluster_name, cluster_manager,
                                             local_info);
   cluster_info_ = cluster_manager.get(cluster_name)->info();
-  tls.set(tls_slot_,
-          [this](Event::Dispatcher& dispatcher) -> ThreadLocal::ThreadLocalObjectSharedPtr {
-            return std::make_shared<TlsSink>(*this, dispatcher);
-          });
+  tls_->set([this](Event::Dispatcher& dispatcher) -> ThreadLocal::ThreadLocalObjectSharedPtr {
+    return std::make_shared<TlsSink>(*this, dispatcher);
+  });
 }
 
 TcpStatsdSink::TlsSink::TlsSink(TcpStatsdSink& parent, Event::Dispatcher& dispatcher)
@@ -120,12 +119,12 @@ void TcpStatsdSink::TlsSink::onTimespanComplete(const std::string& name,
   write(fmt::format("envoy.{}:{}|ms\n", name, ms.count()));
 }
 
-void TcpStatsdSink::TlsSink::shutdown() {
+/*void TcpStatsdSink::TlsSink::shutdown() {
   shutdown_ = true;
   if (connection_) {
     connection_->close(Network::ConnectionCloseType::NoFlush);
   }
-}
+}fixfix*/
 
 void TcpStatsdSink::TlsSink::write(const std::string& stat) {
   if (shutdown_) {

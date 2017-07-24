@@ -21,11 +21,11 @@ public:
   ~InstanceImpl();
 
   // Server::ThreadLocal
-  uint32_t allocateSlot() override { return next_slot_id_++; }
-  ThreadLocalObjectSharedPtr get(uint32_t index) override;
+  SlotPtr allocateSlot() override; // fixfix { return next_slot_id_++; }
+  // ThreadLocalObjectSharedPtr get(uint32_t index) override;
   void registerThread(Event::Dispatcher& dispatcher, bool main_thread) override;
-  void runOnAllThreads(Event::PostCb cb) override;
-  void set(uint32_t index, InitializeCb cb) override;
+  // void runOnAllThreads(Event::PostCb cb) override;
+  // void set(uint32_t index, InitializeCb cb) override;
   void shutdownThread() override;
 
 private:
