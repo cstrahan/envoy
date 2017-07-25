@@ -226,6 +226,8 @@ def _crosstool_content(repository_ctx, cc, cpu_value, darwin):
           "-fstack-protector",
           # All warnings are enabled. Maybe enable -Werror as well?
           "-Wall",
+
+          "-Wno-error=strict-aliasing" # fix for Nix's gcc
           # Enable a few more warnings that aren't part of -Wall.
       ] + (["-Wthread-safety", "-Wself-assign"] if darwin else [
           "-B" + escape_string(str(repository_ctx.path(cc).dirname)),
@@ -262,7 +264,7 @@ def _opt_content(darwin):
 
           # Security hardening on by default.
           # Conservative choice; -D_FORTIFY_SOURCE=2 may be unsafe in some cases.
-          "-D_FORTIFY_SOURCE=1",
+          #"-D_FORTIFY_SOURCE=1", # disabled on Nix, where this happens by default.
 
           # Disable assertions
           "-DNDEBUG",

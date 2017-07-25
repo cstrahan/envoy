@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # This file was imported from https://github.com/bazelbuild/bazel at d6fec93.
 
