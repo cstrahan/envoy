@@ -292,6 +292,8 @@ def _crosstool_content(repository_ctx, cc, cpu_value, darwin):
           "-fstack-protector",
           # All warnings are enabled. Maybe enable -Werror as well?
           "-Wall",
+
+          "-Wno-error=strict-aliasing"
           # Enable a few more warnings that aren't part of -Wall.
       ] + (["-Wthread-safety", "-Wself-assign"] if darwin else [
           "-B" + str(repository_ctx.path(cc).dirname),
@@ -364,10 +366,6 @@ def _opt_content(darwin):
           # -O3 can increase binary size and even slow down the resulting binaries.
           # Profile first and / or use FDO if you need better performance than this.
           "-O2",
-
-          # Security hardening on by default.
-          # Conservative choice; -D_FORTIFY_SOURCE=2 may be unsafe in some cases.
-          "-D_FORTIFY_SOURCE=1",
 
           # Disable assertions
           "-DNDEBUG",
