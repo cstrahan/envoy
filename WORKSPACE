@@ -5,7 +5,7 @@ load("//bazel:cc_configure.bzl", "cc_configure")
 
 new_local_repository(
     name = "nix_envoy_deps",
-    path = "/nix/store/x1b3wigx8qr467nnjfl3rrc1id1714an-repo-env",
+    path = "/nix/store/mrsid8jk8dycc4wh5fdckl0hgql4ydx0-repo-env",
     build_file = "nix_envoy_deps.BUILD"
 )
 

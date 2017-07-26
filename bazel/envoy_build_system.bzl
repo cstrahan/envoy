@@ -131,11 +131,9 @@ def envoy_cc_binary(name,
             # --build-id and avoid doing the following.
             '-Wl,--build-id=md5',
             '-Wl,--hash-style=gnu',
-            "-static-libstdc++",
-            "-static-libgcc",
         ],
         testonly = testonly,
-        linkstatic = 1,
+        linkstatic = 0,
         visibility = visibility,
         malloc = tcmalloc_external_dep(repository),
         # See above comment on MD5 hash, this is another "force MD5 stamps" to make sure our
