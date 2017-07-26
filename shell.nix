@@ -11,11 +11,8 @@ let
     gtest
     gperftools
     http-parser
-    /* lightstep */
     nghttp2
-    /* libnghttp2 */
     protobuf3_2
-    tclap
     rapidjson
     spdlog
     boringssl

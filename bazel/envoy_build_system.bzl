@@ -52,8 +52,8 @@ def envoy_linkopts():
             # --build-id and avoid doing the following.
             '-Wl,--build-id=md5',
             '-Wl,--hash-style=gnu',
-            "-static-libstdc++",
-            "-static-libgcc",
+            #"-static-libstdc++", # disabled on Nix
+            #"-static-libgcc",    # disabled on Nix
         ],
     })
 
@@ -170,7 +170,7 @@ def envoy_cc_binary(name,
         copts = envoy_copts(repository),
         linkopts = envoy_linkopts(),
         testonly = testonly,
-        linkstatic = 1,
+        linkstatic = 0, # don't statically link on Nix
         visibility = visibility,
         malloc = tcmalloc_external_dep(repository),
         # See above comment on MD5 hash, this is another "force MD5 stamps" to make sure our

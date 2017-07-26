@@ -117,7 +117,7 @@ let
 
     spdlog = {
       name = "spdlog";
-      hdrs = ''glob([ "thirdparty/spdlog/include/**/*.cc", "thirdparty/spdlog/include/**/*.h" ])'';
+      hdrs = ''glob([ "include/spdlog/**/*.cc", "include/spdlog/**/*.h" ])'';
       includes = ''["include"]'';
     };
 
@@ -129,7 +129,7 @@ let
 
     tclap = {
       pkg = tclap;
-      hdrs = ''glob(["thirdparty/tclap/include/**/*.h"])'';
+      hdrs = ''glob(["include/tclap/**/*.h"])'';
       includes = ''["include"]'';
     };
 
@@ -196,7 +196,9 @@ let
     cc_configure()
     '';
 
-  rpath = stdenv.lib.makeLibraryPath allDeps;
+  rpath = stdenv.lib.makeLibraryPath (allDeps ++ [
+    stdenv.cc.cc
+  ]);
 
 in
 
