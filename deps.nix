@@ -19,11 +19,13 @@ let
     http-parser
     lightstep-tracer-cpp
     nghttp2
-    protobuf3_2
+    protobuf
     tclap
     rapidjson
     spdlog
     boringssl
+    libyamlcpp
+    zlib
   ];
 
   # the repo we'll use for our new_local_repository in our generated WORKSPACE.
@@ -139,6 +141,20 @@ let
       hdrs = ''glob(["include/gperftools/**/*.h"])'';
       strip_include_prefix = ''"include"'';
     };
+
+    yaml_cpp = {
+      pkg = libyamlcpp;
+      srcs = ''["thirdparty_build/lib/libyaml-cpp.so"]'';
+      hdrs = ''glob(["include/yaml-cpp/**/*.h"])'';
+      includes = ''["include"]'';
+    };
+
+    zlib = {
+      pkg = zlib;
+      name = "zlib";
+      srcs = ''[ "lib/libz.so" ]'';
+      hdrs = ''[ "include/zconf.h", "include/zlib.h" ]'';
+    };
   };
 
   field = name: attrs: if attrs ? "${name}" then "    ${name} = ${attrs.${name}},\n" else "";
@@ -194,6 +210,9 @@ let
     )
 
     cc_configure()
+
+    load("@envoy_api//bazel:repositories.bzl", "api_dependencies")
+    api_dependencies()
     '';
 
   rpath = stdenv.lib.makeLibraryPath (allDeps ++ [

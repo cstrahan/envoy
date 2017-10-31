@@ -12,7 +12,7 @@ let
     gperftools
     http-parser
     nghttp2
-    protobuf3_2
+    protobuf
     rapidjson
     spdlog
     boringssl
@@ -21,7 +21,7 @@ let
 in
 
 runCommand "dummy" {
-  hardeningDisable = "all";
+  hardeningDisable = ["all"];
   buildInputs = [
     bazel pkgconfig patchelf
   ] ++ deps;
