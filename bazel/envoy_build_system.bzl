@@ -170,7 +170,7 @@ def envoy_cc_binary(name,
         copts = envoy_copts(repository),
         linkopts = envoy_linkopts(),
         testonly = testonly,
-        linkstatic = 0, # don't statically link on Nix
+        linkstatic = 1, # don't statically link on Nix
         visibility = visibility,
         malloc = tcmalloc_external_dep(repository),
         # See above comment on MD5 hash, this is another "force MD5 stamps" to make sure our

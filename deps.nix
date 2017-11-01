@@ -7,10 +7,38 @@ prebuilt binaries approach used by upstream.
 
 */
 
-with import ~/src/nixpkgs { };
+let pkgs = import ~/src/nixpkgs { }; in
+with pkgs;
 
 let
-  allDeps = [
+  # see https://github.com/envoyproxy/envoy/commit/1d2a2100708d1012cd61054ce04d4dc4e3b03ff2
+  protobufInternals = runCommand "protobuf-internals" {} ''
+    mkdir -p $out/include/google/protobuf/util/internal
+    mkdir -p $out/include/google/protobuf/stubs
+
+    cp ${pkgs.protobuf.src}/src/google/protobuf/util/internal/*.h $out/include/google/protobuf/util/internal
+    cp ${pkgs.protobuf.src}/src/google/protobuf/stubs/strutil.h $out/include/google/protobuf/stubs/
+    cp ${pkgs.protobuf.src}/src/google/protobuf/stubs/statusor.h $out/include/google/protobuf/stubs/
+  '';
+  protobufWithInternals = symlinkJoin {
+    name = "protobuf-with-internals";
+    paths = [ pkgs.protobuf protobufInternals ];
+  };
+  protobuf = protobufWithInternals;
+
+  libyamlcpp = pkgs.libyamlcpp.overrideAttrs (attrs: {
+    src = fetchFromGitHub {
+      owner = "jbeder";
+      repo = "yaml-cpp";
+      rev = "e2818c423e5058a02f46ce2e519a82742a8ccac9"; # 2017-07-25
+      sha256 = "0v2b0lxysxncqnm4k9by815a6w72k3f1fpprsnw46pwiv3id54cb";
+    };});
+
+in
+
+let
+  # everything but protobuf...
+  mostDeps = [
     c-ares
     backward-cpp
     libevent
@@ -33,7 +61,7 @@ let
     name = "repo-env";
     paths = lib.concatMap (p:
       lib.unique [(lib.getBin p) (lib.getLib p) (lib.getDev p)]
-    ) allDeps;
+    ) (mostDeps ++ [ protobuf ]);
   };
 
   # from ci/prebuilt/BUILD
@@ -144,7 +172,7 @@ let
 
     yaml_cpp = {
       pkg = libyamlcpp;
-      srcs = ''["thirdparty_build/lib/libyaml-cpp.so"]'';
+      srcs = ''["lib/libyaml-cpp.so"]'';
       hdrs = ''glob(["include/yaml-cpp/**/*.h"])'';
       includes = ''["include"]'';
     };
@@ -206,7 +234,8 @@ let
         name = "protobuf_bzl",
         path = "/home/cstrahan/src/envoy/thirdparty/protobuf",
         # We only want protobuf.bzl, so don't support building out of this repo.
-        build_file_content = "",
+        #build_file_content = "",
+        build_file = "/home/cstrahan/src/envoy/thirdparty/protobuf/BUILD",
     )
 
     cc_configure()
@@ -215,8 +244,9 @@ let
     api_dependencies()
     '';
 
-  rpath = stdenv.lib.makeLibraryPath (allDeps ++ [
+  rpath = stdenv.lib.makeLibraryPath (mostDeps ++ [
     stdenv.cc.cc
+    pkgs.protobuf # use the normal protobuf package
   ]);
 
 in

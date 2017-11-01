@@ -1,11 +1,11 @@
-workspace(name = "nix")
+workspace(name = "envoy")
 
 load("//bazel:repositories.bzl", "envoy_dependencies")
 load("//bazel:cc_configure.bzl", "cc_configure")
 
 new_local_repository(
     name = "nix_envoy_deps",
-    path = "/nix/store/y79a1cfqz0vbfz60w2gb2qr9k96kdqcy-repo-env",
+    path = "/nix/store/jjm0m0ay7riv42qyva8yn6nid5srhj7s-repo-env",
     build_file = "nix_envoy_deps.BUILD"
 )
 
