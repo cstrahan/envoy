@@ -1,0 +1,22 @@
+{
+  "listeners": [
+    {
+      "address": "tcp://127.0.0.1:5555",
+      "use_original_dst": true,
+      "filters": [
+        {
+          "type": "read",
+          "name": "echo2",
+          "config": {}
+        }
+      ]
+    }
+  ],
+  "admin": {
+    "access_log_path": "/dev/stdout",
+    "address": "tcp://127.0.0.1:5550"
+  },
+  "cluster_manager": {
+    "clusters": []
+  }
+}

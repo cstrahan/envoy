@@ -168,7 +168,8 @@ def _crosstool_content(repository_ctx, cc, cpu_value, darwin):
       "builtin_sysroot": "",
       "compiler": escape_string(get_env_var(repository_ctx, "BAZEL_COMPILER", "compiler", False)),
       "host_system_name": escape_string(get_env_var(repository_ctx, "BAZEL_HOST_SYSTEM", "local", False)),
-      "needsPic": False,
+      #"needsPic": False, # XXX cstrahan: is this change really necessary?
+      "needsPic": True,
       "supports_gold_linker": supports_gold_linker,
       "supports_incremental_linker": False,
       "supports_fission": False,
@@ -182,6 +183,9 @@ def _crosstool_content(repository_ctx, cc, cpu_value, darwin):
           "-std=c++0x",
       ] + _escaped_cplus_include_paths(repository_ctx),
       "linker_flag": [
+          "-lstdc++", # cstrahan: restoring this.
+                      # note that this runs counter to what's described at the
+                      # top of this file.
           "-lm",  # Some systems expect -lm in addition to -lstdc++
           # Anticipated future default.
       ] + (
@@ -341,8 +345,8 @@ def _coverage_feature(darwin):
 
 def find_cc(repository_ctx):
   """Find the C++ compiler. Doesn't %-escape the result."""
-  cc_name = "g++"
-  cc_environ = repository_ctx.os.environ.get("CXX")
+  cc_name = "gcc"
+  cc_environ = repository_ctx.os.environ.get("CC")
   cc_paren = ""
   if cc_environ != None:
     cc_environ = cc_environ.strip()
@@ -355,7 +359,7 @@ def find_cc(repository_ctx):
   cc = repository_ctx.which(cc_name)
   if cc == None:
     fail(
-        ("Cannot find g++ or CXX%s, either correct your path or set the CXX"
+        ("Cannot find gcc or CXX%s, either correct your path or set the CXX"
          + " environment variable") % cc_paren)
   return cc
 

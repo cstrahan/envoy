@@ -4,8 +4,10 @@
 
 #include "spdlog/spdlog.h"
 
-extern const char build_scm_revision[];
-extern const char build_scm_status[];
+//extern const char build_scm_revision[];
+//extern const char build_scm_status[];
+const char build_scm_revision[] = "a8507f67225cdd912712971bf72d41f219eb74ed";
+const char build_scm_status[] = "Modified";
 
 namespace Envoy {
 const std::string& VersionInfo::revision() {
