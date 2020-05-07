@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <fstream>
+#include <memory>
 #include <string>
 #include <unordered_set>
 #include <utility>
@@ -58,6 +59,19 @@
 
 namespace Envoy {
 namespace Server {
+
+Http::FilterFactoryCb AdminFilterConfig::createFilterFactoryFromProtoTyped(
+    const envoy::extensions::filters::http::admin::v3::Admin&, const std::string&,
+    Server::Configuration::FactoryContext& context) {
+
+  return [&context](Http::FilterChainFactoryCallbacks& callbacks) -> void {
+    // TODO: figure out how to handle this without downcasting
+    callbacks.addStreamDecoderFilter(std::make_shared<AdminFilter>(
+        dynamic_cast<AdminImpl&>(context.admin()).createCallbackFunction()));
+  };
+}
+
+REGISTER_FACTORY(AdminFilterConfig, Server::Configuration::NamedHttpFilterConfigFactory);
 
 namespace {
 
@@ -1012,8 +1026,8 @@ Http::Code AdminImpl::handlerAdminHome(absl::string_view, Http::ResponseHeaderMa
     // Remove the leading slash from the link, so that the admin page can be
     // rendered as part of another console, on a sub-path.
     //
-    // E.g. consider a downstream dashboard that embeds the Envoy admin console.
-    // In that case, the "/stats" endpoint would be at
+    // E.g. consider a downstream dashboard that embeds the Envoy admin
+    // console.AdminServerCallbackFunction In that case, the "/stats" endpoint would be at
     // https://DASHBOARD/envoy_admin/stats. If the links we present on the home
     // page are absolute (e.g. "/stats") they won't work in the context of the
     // dashboard. Removing the leading slash, they will work properly in both

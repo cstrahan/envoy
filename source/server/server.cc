@@ -404,6 +404,9 @@ void InstanceImpl::initialize(const Options& options,
   listener_manager_ = std::make_unique<ListenerManagerImpl>(
       *this, listener_component_factory_, worker_factory_, bootstrap_.enable_dispatcher_stats());
 
+  // TODO: where should this go?
+  listener_manager_->addOrUpdateListener(bootstrap_.admin().listener(), "", false);
+
   // The main thread is also registered for thread local updates so that code that does not care
   // whether it runs on the main thread or on workers can still use TLS.
   thread_local_.registerThread(*dispatcher_, true);
